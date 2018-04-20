@@ -4,7 +4,7 @@ from optparse import OptionParser
 sys.path.insert(0, "/usr/local/lib/python2.7/site-packages/") 
 import cv2
 import time
-import Image
+import image
 
 def rectify(h):
 	try:
@@ -34,7 +34,7 @@ def getCards(im, numcards=4):
 	gray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
 	blur = cv2.GaussianBlur(gray,(1,1),1000)
 	flag, thresh = cv2.threshold(blur, 120, 255, cv2.THRESH_BINARY)   
-	contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+	image, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
 	contours = sorted(contours, key=cv2.contourArea,reverse=True)[:numcards]  
 
