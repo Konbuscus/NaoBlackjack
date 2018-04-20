@@ -289,7 +289,7 @@ def getCards(im, numcards=4):
 	blur = cv2.GaussianBlur(gray,(1,1),1000)
 	flag, thresh = cv2.threshold(blur, 120, 255, cv2.THRESH_BINARY)   
 	#Manque image (pas sûr)
-	ontours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+	contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
 	contours = sorted(contours, key=cv2.contourArea,reverse=True)[:numcards]  
 
