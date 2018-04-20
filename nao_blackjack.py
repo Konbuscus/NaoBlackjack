@@ -18,11 +18,12 @@ nao_blackjack.py <training_image_filename> <training_labels_filename>
 """
 
 # Defining constants
-STAND, HIT, LOSE, WIN = 0, 1, 2, 3
+# STAND, HIT, LOSE, WIN = 0, 1, 2, 3
+WIN, LOSE, DRAW, WAITING = 0, 1, 2, 3
 NAO_IP = "nao.local"
 NAO_PORT = 9559
 
-NaoBlackJack = None
+NaoHighLow = None
 memory = None
 
 
@@ -86,7 +87,7 @@ class NaoBlackJackModule(ALModule):
 
 		# Subscribe to Front Tactile Sensor Event
 		memory = ALProxy("ALMemory")
-		self.tts.say("Initialization is done, deal the cards, and when is my turn, touch my head.")
+		self.tts.say("Initialisation terminée, distribue les cartes et appuyer sur ma tête")
 		memory.subscribeToEvent("FrontTactilTouched", "NaoBlackJack", "onFrontTouchDetected")
 		memory.subscribeToEvent("RearTactilTouched", "NaoBlackJack", "onRearTouchDetected")
 
@@ -120,36 +121,33 @@ class NaoBlackJackModule(ALModule):
 		self.camProxy.unsubscribe(self.videoClient)
 
 	def speakDecision(self, decision):
-		if decision==HIT:
-				self.tts.say("Hit")
-		elif decision==STAND:
-			self.tts.say("Stand")
-		elif decision==LOSE:
+		
+		if decision==LOSE:
 			rnd = random()
 			if rnd<0.1:
-				self.tts.say("The battle is lost. But the war has just began!")
+				self.tts.say("La bataille est perdue, mais la guerre ne fait que commencer")
 			elif rnd<0.4:
-				self.tts.say("I lost this one, but It is not how hard you hit. It's how hard you get hit and keep moving forward.")
+				self.tts.say("J'ai perdu cette partie, ne te réjouit pas fdp")
 			elif rnd<0.6:
-				self.tts.say("I lost, but people say: Lucky at cards, unlucky in love. Fortunately, girls love me!")	
+				self.tts.say("J'ai perdu voilà mes derniers boulons")	
 			elif rnd<0.7:
-				self.tts.say("I hate losing. Second place doesn't interest me. I have fire in my belly!")
+				self.tts.say("Je deteste perdre, je vas venir te tuer dans ton sommeil")
 			else:
-				self.tts.say("If I could speak Macedonian, I would say some really really! mean words!")
+				self.tts.say("Je vais t'insulter, le sel est en moi")
 		elif decision==WIN:
 			rnd = random()
 			if rnd<0.3:
-				self.tts.say("Try losing some weight, not just games in Black Jack!")
+				self.tts.say("Essaye de perdre du poids, au lieu de perdre à la bataille")
 			elif rnd<0.4:
-				self.tts.say("You lost again. Please level up, you are to week for me!")
+				self.tts.say("Tu as encore perdu, depuis quand es-tu devenu si faible")
 			elif rnd<0.5:
-				self.tts.say("Stop losing. Try using the force next time.")
+				self.tts.say("Alors on continue de perdre ? Essaye d'utiliser la force la prochaine fois")
 			elif rnd<0.6:
-				self.tts.say("It seems like you really like losing. If you like it, you should put a ring on it.")
+				self.tts.say("Essaye de te faire mousser la moustache, il paraît que ça porte chance")
 			elif rnd<0.7:
-				self.tts.say("Me and Charlie Sheen must be related. Hashtag: winning.")
+				self.tts.say("Tu aimes perdres ? Les simplexes sont fait pour toi.")
 			else:
-				self.tts.say("Who you gonna blame now for losing? Branko?")
+				self.tts.say("Au lieu d'acheter un paquet de carte, achète un pack EPSI")
 	
 	# This will be called when Nao front tactile sensor is touched.
 	def onFrontTouchDetected(self, *_args):
@@ -161,7 +159,8 @@ class NaoBlackJackModule(ALModule):
 		prev_naoNumCards = 0
 		prev_dealerNumCards = 0
 
-		while decision==None or decision==HIT or decision==STAND:
+		while decision==None: #or decision==HIT or decision==STAND:
+			#Vue de nao (image)
 			im = self.getNaoImage()
 			height, width, depth = im.shape
 			naoCardsImg = im[height/2:height, 0:width]
@@ -173,15 +172,36 @@ class NaoBlackJackModule(ALModule):
 			print "Counted", dealerNumCards, "dealerCards on the image" 
 
 			# If Nao does't have the required number of cards he will tell you
-			if decision!=STAND and (naoNumCards <= prev_naoNumCards or naoNumCards < 2 or naoNumCards > prev_naoNumCards+2):
-				self.tts.say("Please deal me a card.")
+			#if decision!=STAND #and (naoNumCards <= prev_naoNumCards or naoNumCards < 2 or naoNumCards > prev_naoNumCards+2):
+			if decision != DRAW:
+
+				#Compare les deux cartes
+				#Récupérer carte de nao
+				#Récupérer carte du dealer / joueur
+				#change la décision en fonction du gagant
+
+				if decision == WIN:
+					
+					#Phrases random comme plus bas
+					self.tts.say("BRAVO TU TE CROIS DRÔLE ON RECOMMENCE !")
+					time.sleep(3)
+					continue
+
+				elif deicion == LOSE:
+					self.tts.say("AHAH T MOVAI JACK")
+					time.sleep(3)
+					continue
+
+			else :
+				self.tts.say("A L'ATTAQUE ENCULER, BALANCE TA CARTE")
 				time.sleep(3)
 				continue
-			
-			if dealerNumCards < 1 or dealerNumCards > prev_dealerNumCards + 2:
-				self.tts.say("Please deal card to yourslef")
-				time.sleep(3)
-				continue
+				
+
+			# if dealerNumCards < 1 or dealerNumCards > prev_dealerNumCards + 2:
+			# 	self.tts.say("Please deal card to yourslef")
+			# 	time.sleep(3)
+			# 	continue
 			
 			# Debug: uncomment to see registered images
 				# for i,c in enumerate(getCards(im,naoNumCards+dealerNumCards)):
@@ -190,25 +210,27 @@ class NaoBlackJackModule(ALModule):
 				# cv2.waitKey(0)
 			
 			# If Nao has called STAND, his cards are the same and there is no need for new card recognition
-			if decision!=STAND:
-				naoCards = [find_closest_card(self.training, c) for c in getCards(naoCardsImg, naoNumCards)]
-			print "Regognized following naoCards:", naoCards, "=", sum_cards(naoCards)
-			dealerCards = [find_closest_card(self.training, c) for c in getCards(dealerCardsImg, dealerNumCards)]
-			print "Regognized following dealerCards:", dealerCards, "=", sum_cards(dealerCards)
+			#Recuperation des cartes
+			# if decision!=STAND:
+			# 	naoCards = [find_closest_card(self.training, c) for c in getCards(naoCardsImg, naoNumCards)]
+			# print "Regognized following naoCards:", naoCards, "=", sum_cards(naoCards)
+			# dealerCards = [find_closest_card(self.training, c) for c in getCards(dealerCardsImg, dealerNumCards)]
+			# print "Regognized following dealerCards:", dealerCards, "=", sum_cards(dealerCards)
 
 			prev_decision = decision
 			decision = decide(naoCards, dealerCards)
 			print "Previous decision was", prev_decision, "my new decision is", decision
-			if prev_decision==STAND and decision==HIT:
-				decision=STAND
-			if decision!=STAND or decision!=prev_decision:
-				self.speakDecision(decision)
+			# if prev_decision==STAND and decision==HIT:
+			# 	decision=STAND
+			# if decision!=STAND or decision!=prev_decision:
+			# 	self.speakDecision(decision)
+			self.speakDecision(decide)
 
 			prev_naoNumCards = naoNumCards
 			prev_dealerNumCards = dealerNumCards
 			time.sleep(3)
 
-		self.tts.say("If you want to play another round. Deal the cards, and when is my turn, touch my head")
+		self.tts.say("Si vous voulez rejouer, donnez les cartes et appuyer sur ma tête")
 
 		# Subscribe again to the event
 		memory.subscribeToEvent("FrontTactilTouched", "NaoBlackJack", "onFrontTouchDetected")
@@ -266,7 +288,8 @@ def getCards(im, numcards=4):
 	gray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
 	blur = cv2.GaussianBlur(gray,(1,1),1000)
 	flag, thresh = cv2.threshold(blur, 120, 255, cv2.THRESH_BINARY)   
-	contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+	#Manque image (pas sûr)
+	ontours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
 	contours = sorted(contours, key=cv2.contourArea,reverse=True)[:numcards]  
 
@@ -346,53 +369,70 @@ def get_training(training_labels_filename, training_image_filename, num_training
 	return training
 
 ###############################################################################
-# BlackJack functions
+# Power functions
 ###############################################################################  
 def card_value(card, result):
-	if card=='K' or card=='Q' or card=='J' or card=='10':
-		return 10
-	elif card=='A':
+	if card == '1' or card == 'A':
+		return 14 #Ace value
+	#if card=='K' or card=='Q' or card=='J' or card=='10':
+	elif card == 'K':
+		return 13
+	elif card == 'Q':
+		return 12
+	elif card == 'J' : 
 		return 11
 	else:
 		return int(card)
 
-def sum_cards(nao_cards):
-	result=0
-	aces = 0
-	for card in nao_cards:
-		if card=='A':
-			aces+=1
-		result+=card_value(card, result)
-		while result>21 and aces>0:
-			result-=10
-			aces-=1
-	return result
+# def sum_cards(nao_cards):
+# 	result=0
+# 	aces = 0
+# 	for card in nao_cards:
+# 		if card=='A':
+# 			aces+=1
+# 		result+=card_value(card, result)
+# 		while result>21 and aces>0:
+# 			result-=10
+# 			aces-=1
+# 	return result
 
 def decide(nao_cards, dealer_cards):
-	nao_sum = sum_cards(nao_cards)
-	dealer_sum = sum_cards(dealer_cards)
-	if nao_sum==21 or dealer_sum > 21 or (dealer_sum>=17 and 21-dealer_sum >= 21-nao_sum):
+
+	
+	#Première carte du tableau des deux mains
+	realNaoCard = nao_cards[0]
+	realPlayerCard = dealer_cards[0]
+
+	if  realPlayerCard > realNaoCard :
 		return WIN
-	elif nao_sum>21 or (dealer_sum>=17 and 21-dealer_sum < 21-nao_sum):
+
+	elif realPlayerCard < realNaoCard:
 		return LOSE
-	elif nao_sum<=11:
-		return HIT
-	elif nao_sum==12 and 4 > dealer_sum > 6:
-		return HIT
-	elif 13 <= nao_sum <= 16 and dealer_sum > 6:
-		return HIT
-	else:
-		return STAND
+
+	elif realNaoCard == realPlayerCard
+		return DRAW
+
+	
+	# nao_sum = sum_cards(nao_cards)
+	# dealer_sum = sum_cards(dealer_cards)
+	# if nao_sum==21 or dealer_sum > 21 or (dealer_sum>=17 and 21-dealer_sum >= 21-nao_sum):
+	# 	return WIN
+	# elif nao_sum>21 or (dealer_sum>=17 and 21-dealer_sum < 21-nao_sum):
+	# 	return LOSE
+	# elif nao_sum<=11:
+	# 	return HIT
+	# elif nao_sum==12 and 4 > dealer_sum > 6:
+	# 	return HIT
+	# elif 13 <= nao_sum <= 16 and dealer_sum > 6:
+	# 	return HIT
+	# else:
+	# 	return STAND
 
 def speakDecision(decision):
-	if decision==HIT:
-			tts.say("Hit")
-	elif decision==STAND:
-		tts.say("Stand")
-	elif decision==LOSE:
-		tts.say("Damn I lost!")
+	if decision==LOSE:
+		tts.say("BORDEL JAI PERDU")
 	elif decision==WIN:
-		tts.say("Yes, I won, make it rain!")
+		tts.say("JAI GAGNER")
 
 camProxy = None
 
