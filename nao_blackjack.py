@@ -153,7 +153,7 @@ class NaoBlackJackModule(ALModule):
 	def onFrontTouchDetected(self, *_args):
 		# Unsubscribe so it doest get fired again while playing
 		memory.unsubscribeToEvent("FrontTactilTouched", "NaoBlackJack")
-		self.tts.say("Round started")
+		self.tts.say("C'est l'heure du DUDUDUDDU DUELLL !")
 		# Setting variables for the round
 		decision = None
 		prev_naoNumCards = 0
